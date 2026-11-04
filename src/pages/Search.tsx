@@ -10,7 +10,8 @@ const examples = [
   "以北纬29.7253°、东经115.9748°为中心，半径300米内拍摄的航拍图像",
   "夜间拍摄的道路视频",
   "有游泳池的居民区遥感影像",
-  "Part 107 对夜间飞行有什么要求",
+  "微型无人驾驶航空器的空机重量和最大飞行高度",
+  "Part 107 night operations anti-collision lighting",
 ];
 
 export default function Search({ params }: { params: URLSearchParams }) {
