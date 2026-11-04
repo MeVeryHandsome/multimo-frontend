@@ -1,27 +1,36 @@
 @import "tailwindcss";
 
-/* Palette and type follow aeronautical charts: chart magenta marks what a
-   model asserted (boxes, citations), chart blue marks geography. */
+/* Quiet, cool workspace; the imagery sits on a dark stage. Magenta is kept
+   for what a model asserted (boxes, citations, the selected frame), blue for
+   geography. */
 @theme {
-  --color-ground: #e8edef;
+  --color-ground: #f4f6f8;
   --color-surface: #ffffff;
-  --color-sunk: #f2f5f6;
-  --color-ink: #16212c;
-  --color-ink-2: #4a5866;
-  --color-ink-3: #7d8a96;
-  --color-line: #cdd5db;
-  --color-line-soft: #e1e6ea;
-  --color-magenta: #b01f68;
-  --color-magenta-wash: #f7e4ee;
-  --color-chart: #2a62a3;
-  --color-chart-wash: #e2ebf5;
-  --color-pass: #2e7a4e;
-  --color-pass-wash: #e2f0e7;
-  --color-fail: #bf3f2c;
-  --color-fail-wash: #f8e5e1;
+  --color-sunk: #eef1f4;
+  --color-ink: #17202a;
+  --color-ink-2: #4e5967;
+  --color-ink-3: #8892a0;
+  --color-line: #e2e6eb;
+  --color-line-strong: #cdd3da;
+  --color-stage: #0e151d;
+  --color-stage-2: #18222d;
+  --color-stage-line: #2a3644;
+  --color-magenta: #c2185b;
+  --color-magenta-soft: #fbe7ef;
+  --color-magenta-glow: #ff5fa2;
+  --color-geo: #2b63b5;
+  --color-geo-soft: #e7eef9;
+  --color-pass: #2e7d4f;
+  --color-pass-soft: #e5f2ea;
+  --color-pass-track: #cfe6d8;
+  --color-fail: #c2412d;
+  --color-fail-soft: #fbe9e5;
+  --color-fail-track: #f3d3cc;
 
-  --font-sans: "Barlow Semi Condensed", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-  --font-figure: "Barlow Condensed", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-sans: "Source Sans 3", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif;
+
+  --radius-media: 10px;
+  --radius-panel: 14px;
 }
 
 @layer base {
@@ -30,32 +39,43 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: 15px;
-    line-height: 1.55;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   body {
     margin: 0;
   }
+  h1, h2, h3 {
+    letter-spacing: -0.005em;
+  }
   :focus-visible {
-    outline: 2px solid var(--color-chart);
+    outline: 2px solid var(--color-geo);
     outline-offset: 2px;
+    border-radius: 4px;
   }
   button {
     cursor: pointer;
   }
   ::selection {
-    background: var(--color-magenta-wash);
+    background: var(--color-magenta-soft);
+  }
+  input, textarea, select {
+    font: inherit;
   }
 }
 
 @layer utilities {
-  .figures {
-    font-family: var(--font-figure);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.01em;
-  }
   .tnum {
     font-variant-numeric: tabular-nums;
+  }
+  .panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-panel);
+  }
+  .float {
+    box-shadow: 0 1px 2px rgba(15, 23, 32, 0.06), 0 12px 32px rgba(15, 23, 32, 0.12);
   }
 }
 
@@ -68,14 +88,16 @@
   }
 }
 
-/* Leaflet controls in the app's type and colours. */
 .leaflet-container {
   font-family: var(--font-sans);
   background: var(--color-sunk);
 }
 .leaflet-popup-content-wrapper {
-  border-radius: 4px;
+  border-radius: 10px;
 }
 .leaflet-control-attribution {
   font-size: 11px;
+}
+.leaflet-bar a {
+  color: var(--color-ink);
 }

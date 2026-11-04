@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { postJSON, type Answer, type Evidence } from "../api";
 import { clock } from "../format";
 import { navigate } from "../router";
-import { Button, ErrorNote } from "../components/ui";
+import { Button, Chip, ErrorNote } from "../components/ui";
 
 const examples = [
   "视频 uav0000086_00000_v 中主要有哪些目标？",
@@ -40,31 +40,41 @@ export default function Ask({ params }: { params: URLSearchParams }) {
     return () => { live = false; };
   }, [q]);
 
-  const submit = (s: string) => navigate("/ask", { q: s.trim() });
+  const submit = (s: string) => s.trim() && navigate("/ask", { q: s.trim() });
+
+  const form = (
+    <form onSubmit={(e) => { e.preventDefault(); submit(text); }} className="panel flex items-end gap-3 p-3 shadow-[0_1px_2px_rgba(15,23,32,0.05)]">
+      <label htmlFor="question" className="sr-only">问题</label>
+      <textarea id="question" value={text} onChange={(e) => setText(e.target.value)} rows={2} autoFocus={!q}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(text); } }}
+        placeholder="就素材或法规提问。点名文件（如 P6519、01_0101.JPG）会优先用它们作证据。"
+        className="min-h-[52px] flex-1 resize-none bg-transparent px-2 py-1.5 text-[16px] leading-relaxed placeholder:text-ink-3 focus:outline-none" />
+      <Button type="submit" disabled={busy || !text.trim()}>{busy ? "回答中" : "提问"}</Button>
+    </form>
+  );
+
+  if (!q) {
+    return (
+      <div className="mx-auto max-w-[760px] px-4 pt-[12vh] pb-16 sm:px-8">
+        <h1 className="text-center text-[30px] font-semibold">基于证据的问答</h1>
+        <p className="mx-auto mt-2 max-w-[56ch] text-center text-ink-2">
+          先检索相关的关键帧、飞行记录和法规条款，再由视觉模型根据这些证据作答，每句话都标出出处。
+        </p>
+        <div className="mt-8">{form}</div>
+        <ul className="mt-6 space-y-2">
+          {examples.map((e) => (
+            <li key={e}>
+              <button onClick={() => submit(e)} className="w-full rounded-[10px] px-4 py-2.5 text-left text-[15px] text-ink-2 hover:bg-surface hover:text-ink">{e}</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="border-b border-line bg-surface px-4 sm:px-8 pt-8 pb-5">
-        <form onSubmit={(e) => { e.preventDefault(); submit(text); }} className="flex max-w-[980px] items-start gap-2">
-          <label htmlFor="question" className="sr-only">问题</label>
-          <textarea id="question" value={text} onChange={(e) => setText(e.target.value)} rows={2} autoFocus
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(text); } }}
-            placeholder="就素材或法规提问。点名文件（如 P6519、01_0101.JPG）会优先使用它们作为证据。"
-            className="flex-1 resize-y rounded-[3px] border border-ink-3 bg-surface px-4 py-3 text-[17px] placeholder:text-ink-3 focus:border-ink focus:outline-none" />
-          <Button type="submit" disabled={busy || !text.trim()}>{busy ? "回答中" : "提问"}</Button>
-        </form>
-        {!q && (
-          <div className="mt-4 max-w-[980px]">
-            <p className="text-[13px] text-ink-3">例如：</p>
-            <ul className="mt-1.5 flex flex-col items-start gap-1.5">
-              {examples.map((e) => (
-                <li key={e}><button onClick={() => submit(e)} className="text-left text-[15px] text-chart hover:underline">{e}</button></li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
+    <div className="mx-auto max-w-[1280px] px-4 pt-6 pb-16 sm:px-8">
+      <div className="max-w-[860px]">{form}</div>
       {busy && <Waiting since={started} />}
       {error && <ErrorNote error={error} retry={() => submit(q)} />}
       {res && <AnswerView res={res} />}
@@ -79,26 +89,34 @@ function Waiting({ since }: { since: number }) {
     return () => window.clearInterval(t);
   }, []);
   const s = Math.floor((now - since) / 1000);
-  const step = s < 3 ? "判断问题类型" : s < 6 ? "检索证据" : s < 9 ? "筛选有用的证据" : "根据证据作答";
-  return <p className="px-4 sm:px-8 py-8 text-ink-2">{step}… <span className="figures text-ink-3">{s} 秒</span></p>;
+  const steps = ["判断问题类型", "检索证据", "筛选有用的证据", "根据证据作答"];
+  const cur = s < 2 ? 0 : s < 4 ? 1 : s < 6 ? 2 : 3;
+  return (
+    <ol className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-[14px]" aria-live="polite">
+      {steps.map((t, i) => (
+        <li key={t} className={i < cur ? "text-ink-3" : i === cur ? "font-semibold text-ink" : "text-ink-3/60"}>
+          {t}{i === cur && <span className="tnum ml-1.5 font-normal text-ink-3">{s} 秒</span>}
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 function AnswerView({ res }: { res: Answer }) {
   const cited = new Set(res.citations ?? []);
   return (
-    <div className="grid gap-8 px-4 sm:px-8 py-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-      <article className="max-w-[72ch]">
-        <p className="mb-3 flex flex-wrap gap-x-4 text-[13px] text-ink-3">
-          <span>问题类型：{intentZh[res.intent] ?? res.intent}</span>
-          <span>置信度 <span className="figures">{res.confidence.toFixed(2)}</span></span>
-          {res.mentioned?.length > 0 && <span>点名素材：{res.mentioned.join("、")}</span>}
-          <span className="figures">{((res.timingsMs?.total ?? 0) / 1000).toFixed(1)} 秒</span>
-        </p>
-        {res.fallback && <p className="mb-3 border-l-[3px] border-fail bg-fail-wash px-3 py-2 text-[14px]">视觉模型暂时不可用，下面是最相关证据的原文。</p>}
-        <div className="text-[17px] leading-[1.8] whitespace-pre-line">{withCitations(res.answer)}</div>
+    <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <article className="panel self-start p-6 sm:p-8">
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-[13px] text-ink-3">
+          <Chip tone="geo">{intentZh[res.intent] ?? res.intent}</Chip>
+          {res.mentioned?.map((m) => <Chip key={m}>{m}</Chip>)}
+          <span className="ml-auto tnum">置信度 {res.confidence.toFixed(2)}，用时 {((res.timingsMs?.total ?? 0) / 1000).toFixed(1)} 秒</span>
+        </div>
+        {res.fallback && <ErrorNote error="视觉模型暂时不可用，下面是最相关证据的原文。" />}
+        <div className="max-w-[68ch] text-[17px] leading-[1.9] whitespace-pre-line">{withCitations(res.answer)}</div>
       </article>
       <aside aria-label="证据">
-        <h2 className="mb-2 text-[17px] font-semibold">证据</h2>
+        <h2 className="mb-3 text-[15px] font-semibold">证据 <span className="tnum font-normal text-ink-3">{res.evidence.length}</span></h2>
         <ol className="space-y-3">
           {res.evidence.map((e) => <EvidenceItem key={e.n} e={e} cited={cited.has(e.n)} />)}
         </ol>
@@ -113,20 +131,17 @@ function withCitations(text: string): ReactNode[] {
   const re = /\[(\d+(?:\s*[,，、]\s*\d+)*)\]/g;
   let last = 0;
   for (const m of text.matchAll(re)) {
-    const adjacent = out.length > 0 && m.index === last; // "[2][3]" reads as "2,3"
     out.push(text.slice(last, m.index));
     const ns = m[1].split(/\s*[,，、]\s*/);
     out.push(
-      <sup key={m.index} className="figures ml-0.5 text-[12px]">
-        {adjacent && ","}
-        {ns.map((n, i) => (
-          <Fragment key={n}>
-            {i > 0 && ","}
-            <a href={`#ev-${n}`} onClick={(e) => { e.preventDefault(); document.getElementById(`ev-${n}`)?.scrollIntoView({ block: "center" }); }}
-              className="text-magenta hover:underline">{n}</a>
-          </Fragment>
+      <Fragment key={m.index}>
+        {ns.map((n) => (
+          <a key={n} href={`#ev-${n}`} onClick={(e) => { e.preventDefault(); document.getElementById(`ev-${n}`)?.scrollIntoView({ block: "center", behavior: "smooth" }); }}
+            className="tnum mx-[1px] inline-flex h-[18px] min-w-[18px] -translate-y-[2px] items-center justify-center rounded-full bg-magenta-soft px-1 align-middle text-[11px] font-semibold text-magenta hover:bg-magenta hover:text-white">
+            {n}
+          </a>
         ))}
-      </sup>,
+      </Fragment>,
     );
     last = (m.index ?? 0) + m[0].length;
   }
@@ -138,15 +153,15 @@ function EvidenceItem({ e, cited }: { e: Evidence; cited: boolean }) {
   const link = e.kind === "keyframe" ? `#/assets/${e.assetId}?kf=${e.unitId}` : `#/assets/${e.assetId}`;
   const where = e.page != null ? `第 ${e.page} 页` : e.tsSec != null ? clock(e.tsSec) : e.kind === "asset" ? "素材概况" : "";
   return (
-    <li id={`ev-${e.n}`} className={`flex gap-3 rounded-[3px] border p-3 ${cited ? "border-magenta/40 bg-surface" : "border-line-soft bg-surface/60"}`}>
-      <span className={`figures w-5 shrink-0 text-right text-[16px] ${cited ? "text-magenta" : "text-ink-3"}`}>{e.n}</span>
-      <div className="min-w-0 flex-1">
-        <p className="flex items-baseline gap-2 text-[13px]">
-          <a href={link} className="truncate font-medium text-ink hover:text-chart">{e.filename}</a>
-          {where && <span className="figures shrink-0 text-ink-3">{where}</span>}
+    <li id={`ev-${e.n}`} className={`panel scroll-mt-24 overflow-hidden ${cited ? "" : "opacity-70"}`}>
+      {e.imageUrl && <img src={e.imageUrl} alt="" loading="lazy" className="aspect-[16/8] w-full object-cover" />}
+      <div className="p-4">
+        <p className="flex items-center gap-2 text-[13px]">
+          <span className={`tnum inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-semibold ${cited ? "bg-magenta text-white" : "bg-sunk text-ink-3"}`}>{e.n}</span>
+          <a href={link} className="truncate font-semibold text-ink hover:text-geo">{e.filename}</a>
+          {where && <span className="tnum ml-auto shrink-0 text-ink-3">{where}</span>}
         </p>
-        {e.imageUrl && <img src={e.imageUrl} alt="" loading="lazy" className="mt-2 aspect-video w-full rounded-[2px] object-cover" />}
-        <p className="mt-1.5 line-clamp-5 text-[13px] leading-relaxed text-ink-2">{e.text}</p>
+        <p className="mt-2 line-clamp-4 text-[13px] leading-relaxed text-ink-2">{e.text}</p>
       </div>
     </li>
   );

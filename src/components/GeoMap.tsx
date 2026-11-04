@@ -60,7 +60,7 @@ export default function GeoMap({ markers, track, basemaps, tileUrl, fitKey, clas
     }
     for (const bm of basemaps ?? []) {
       L.imageOverlay(bm.thumbnailUrl, [[bm.south, bm.west], [bm.north, bm.east]], { opacity: 0.95 }).addTo(b);
-      L.rectangle([[bm.south, bm.west], [bm.north, bm.east]], { color: "#2a62a3", weight: 1, fill: false, dashArray: "4 4" }).addTo(b);
+      L.rectangle([[bm.south, bm.west], [bm.north, bm.east]], { color: "#2b63b5", weight: 1, fill: false, dashArray: "4 4" }).addTo(b);
     }
   }, [tileUrl, basemaps]);
 
@@ -70,16 +70,16 @@ export default function GeoMap({ markers, track, basemaps, tileUrl, fitKey, clas
     if (!m || !g) return;
     g.clearLayers();
     if (track && track.length > 1) {
-      L.polyline(track, { color: "#2a62a3", weight: 2.5, opacity: 0.9 }).addTo(g);
+      L.polyline(track, { color: "#2b63b5", weight: 2.5, opacity: 0.9 }).addTo(g);
     }
     const pts: L.LatLngExpression[] = [];
     for (const mk of markers) {
-      const color = mk.color ?? "#b01f68";
+      const color = mk.color ?? "#c2185b";
       if (mk.accuracyM && mk.accuracyM > 20 && mk.accuracyM < 5000) {
         L.circle([mk.lat, mk.lon], { radius: mk.accuracyM, color, weight: 1, opacity: 0.6, fillOpacity: mk.selected ? 0.12 : 0.05 }).addTo(g);
       }
       const c = L.circleMarker([mk.lat, mk.lon], {
-        radius: mk.selected ? 7 : 4.5, color: mk.selected ? "#16212c" : "#ffffff", weight: mk.selected ? 2 : 1,
+        radius: mk.selected ? 7 : 4.5, color: mk.selected ? "#17202a" : "#ffffff", weight: mk.selected ? 2 : 1,
         fillColor: color, fillOpacity: 1,
       }).addTo(g);
       if (mk.popup) c.bindPopup(mk.popup);
@@ -95,5 +95,5 @@ export default function GeoMap({ markers, track, basemaps, tileUrl, fitKey, clas
     }
   }, [markers, track, fitKey, basemaps]);
 
-  return <div ref={el} className={`${className} w-full rounded-[3px] border border-line`} />;
+  return <div ref={el} className={`${className} w-full rounded-[var(--radius-media)] border border-line`} />;
 }
