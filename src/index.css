@@ -1,1 +1,81 @@
 @import "tailwindcss";
+
+/* Palette and type follow aeronautical charts: chart magenta marks what a
+   model asserted (boxes, citations), chart blue marks geography. */
+@theme {
+  --color-ground: #e8edef;
+  --color-surface: #ffffff;
+  --color-sunk: #f2f5f6;
+  --color-ink: #16212c;
+  --color-ink-2: #4a5866;
+  --color-ink-3: #7d8a96;
+  --color-line: #cdd5db;
+  --color-line-soft: #e1e6ea;
+  --color-magenta: #b01f68;
+  --color-magenta-wash: #f7e4ee;
+  --color-chart: #2a62a3;
+  --color-chart-wash: #e2ebf5;
+  --color-pass: #2e7a4e;
+  --color-pass-wash: #e2f0e7;
+  --color-fail: #bf3f2c;
+  --color-fail-wash: #f8e5e1;
+
+  --font-sans: "Barlow Semi Condensed", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-figure: "Barlow Condensed", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+@layer base {
+  html {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    margin: 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-chart);
+    outline-offset: 2px;
+  }
+  button {
+    cursor: pointer;
+  }
+  ::selection {
+    background: var(--color-magenta-wash);
+  }
+}
+
+@layer utilities {
+  .figures {
+    font-family: var(--font-figure);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Leaflet controls in the app's type and colours. */
+.leaflet-container {
+  font-family: var(--font-sans);
+  background: var(--color-sunk);
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 4px;
+}
+.leaflet-control-attribution {
+  font-size: 11px;
+}
